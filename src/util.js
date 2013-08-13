@@ -4,17 +4,17 @@ define(function () {
     exports.inherits = function(a, b){
         var fn = function(){};
         fn.prototype = b.prototype;
-        a.prototype = new fn;
+        a.prototype = new fn();
         a.prototype.constructor = a;
     };
 
     exports.nextTick = (function () {
         if (typeof setImmediate == 'function') {
-            return function(f){ setImmediate(f) }
+            return function(f){ setImmediate(f); };
         }
         // fallback for other environments / postMessage behaves badly on IE8
         else if (typeof window == 'undefined' || window.ActiveXObject || !window.postMessage) {
-            return function(f){ setTimeout(f) };
+            return function(f){ setTimeout(f); };
         } else {
           var q = [];
 
@@ -34,7 +34,7 @@ define(function () {
           return function(fn){
               if (!q.length) window.postMessage('tic!', '*');
               q.push(fn);
-          }
+          };
         }
     }());
 

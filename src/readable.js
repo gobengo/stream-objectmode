@@ -1,12 +1,19 @@
 define(['stream', 'stream/util'], function (Stream, util) {
-    //"use strict";
+    "use strict";
 
-    var DEFAULT_HIGH_WATER_MARK = 50;
-
+    /**
+     * Base class for Readable Streams
+     * @constructor
+     * @param [opts] {object} Configuration options
+     * @param [opts.highWaterMark=50] {number} The maximum number of objects to
+     *     store in the internal buffer before ceasing to read from upstream
+     */
     function Readable (opts) {
         opts = opts || {};
+        // This Readable implementation only supports objectMode
         opts.objectMode = true;
         this._readableState = new ReadableState(opts, this);
+
         this.readable = true;
         Stream.call(this);
     }
@@ -14,7 +21,14 @@ define(['stream', 'stream/util'], function (Stream, util) {
 
 
     /**
-     * Push a chunk onto the internal buffer, to be read by listeners soon
+     * The Default .highWaterMark for Readables
+     * This will be used if none is specified on construction
+     */
+    var DEFAULT_HIGH_WATER_MARK = 50;
+
+
+    /**
+     * Push a chunk onto the end of the internal buffer
      * The _read() function will not be called again until at least one
      *     push(chunk) call is made.
      * The Readable class works by putting data into a read queue to be pulled
@@ -29,16 +43,19 @@ define(['stream', 'stream/util'], function (Stream, util) {
 
 
     /**
+     * Push a chunk onto the front of the internal buffer.
      * This is useful in certain cases where a stream is being consumed by a
      * parser, which needs to "un-consume" some data that it has optimistically pulled out of the source, so that the stream can be passed on to some other party.
      * @param chunk {object} Chunk of data to unshift onto the read queue
+     * @returns {boolean} Whether or not more pushes should be performed
      */
     Readable.prototype.unshift = function (chunk) {
         return this._addToBuffer(chunk, true);
-    }
+    };
 
 
     /**
+     * @private
      * Common implementation shared between .push and .unshift
      * Both methods mutate to read buffer
      * @param chunk {object} Chunk of data to add to the read queue
@@ -82,9 +99,15 @@ define(['stream', 'stream/util'], function (Stream, util) {
                ( state.needReadable ||
                  state.buffer.length < state.highWaterMark ||
                  state.buffer.length === 0);
-    }
+    };
 
 
+    /**
+     * @private
+     * _read() more data from upstream until the buffer length is greater than
+     *     the highWaterMark. It triggers this by calling .read(0);
+     * This executes on nextTick, not synchronously
+     */
     Readable.prototype._maybeReadMore = function () {
         var self = this,
             state = self._readableState;
@@ -94,7 +117,7 @@ define(['stream', 'stream/util'], function (Stream, util) {
         }
         state.readingMore = true;
 
-        util.nextTick(_readMore)
+        util.nextTick(_readMore);
 
         function _readMore () {
             var len = state.buffer.length;
@@ -115,6 +138,33 @@ define(['stream', 'stream/util'], function (Stream, util) {
 
 
     /**
+     * Bind an event listener to an event on this stream
+     * Readable adds some extra functionality so that binding a listener
+     *     to 'readable' marks ._readableState.needReadable=true
+     * @param eventName {string} The Event name to listen for
+     * @param cb {function} Callback function to call when eventName fires
+     */
+    Readable.prototype.on = function (eventName, cb) {
+        var ret = Stream.prototype.on.call(this, eventName, cb),
+            state = this._readableState;
+
+        if (eventName === 'readable' && this.readable) {
+            // Start reading on the first readable listener
+            if ( ! state.readableListening) {
+                state.readableListening = true;
+                state.emittedReadable = false;
+                state.needReadable = true;
+                if ( ! state.reading) {
+                    this.read(0);
+                } else if (state.buffer.length) {
+                    this._emitReadable();
+                }
+            }
+        }
+    };
+
+
+    /**
      * Read data from the read buffer
      * @param [size] {number} The number of items to read from the buffer.
      *     If not provided, all data will be returned.
@@ -125,8 +175,8 @@ define(['stream', 'stream/util'], function (Stream, util) {
      *     If the internal read buffer is below the highWaterMark, and the
      *     stream is not currently reading, then calling read(0) will trigger a
      *     low-level _read call.
-     *     There is almost never a need to do this.
-     * @returns {array|null}
+     *     There is almost never a need to do this externally.
+     * @returns {object|null} An object from the read buffer, or null
      */
     Readable.prototype.read = function (size) {
         var state = this._readableState,
@@ -215,12 +265,26 @@ define(['stream', 'stream/util'], function (Stream, util) {
     };
 
 
+    /**
+     * @private
+     * Fetch data asynchronously from an upstream source.
+     * Implement this function, but do NOT call it directly.
+     * When data is available, put it into the read queue by calling
+     *     readable.push(chunk). If push returns false, then you should stop
+     *     reading. When _read is called again, you should start pushing more.
+     */
     Readable.prototype._read = function () {
         this.emit('error', new Error('._read() not implemented'));
     };
 
 
-    Readable.prototype._readFromBuffer = function (size) {
+    /**
+     * @private
+     * Get data from the internal read buffer
+     * @returns {object|null} An object from the internal read buffer, or null
+     *     if there is no more on the buffer
+     */
+    Readable.prototype._readFromBuffer = function () {
         var state = this._readableState,
             buffer = state.buffer;
         if (buffer.length === 0) {
@@ -228,9 +292,16 @@ define(['stream', 'stream/util'], function (Stream, util) {
         } else {
             return buffer.shift();
         }
-    }
+    };
 
 
+    /**
+     * @private
+     * Get the appropriate number of objects to read from the buffer.
+     * @param sizeAskedFor {number} The Number of items asked for by the user
+     * @returns {number} The number of objects that should be returned from
+     *     .read()
+     */
     Readable.prototype._getSizeToRead = function (sizeAskedFor) {
         var state = this._readableState;
         // Don't read anything if there's nothing to read
@@ -242,6 +313,10 @@ define(['stream', 'stream/util'], function (Stream, util) {
     };
 
 
+    /**
+     * @private
+     * Cause the stream to emit 'readable'
+     */
     Readable.prototype._emitReadable = function () {
         var self = this,
             state = this._readableState;
@@ -259,9 +334,9 @@ define(['stream', 'stream/util'], function (Stream, util) {
 
 
     /**
-     * File readable is closed and should not be readable again.
+     * @private
+     * Mark the stream as closed and that it should not be readable again.
      * Often this happens after this.push(null);
-     * Sets .state.ended = true
      */
     Readable.prototype._endReadable = function () {
         var state = this._readableState;
@@ -271,10 +346,11 @@ define(['stream', 'stream/util'], function (Stream, util) {
         } else {
             this._emitEnd();
         }
-    }
+    };
 
 
     /**
+     * @private
      * Emit the end event if it hasn't been emitted yet
      */
     Readable.prototype._emitEnd = function () {
@@ -292,32 +368,7 @@ define(['stream', 'stream/util'], function (Stream, util) {
                     self.readable = false;
                     self.emit('end');
                 }
-            })
-        }
-    }
-
-
-    /**
-     * Bind an event listener to an event on this stream
-     * Readable adds some extra functionality so that binding a listener
-     *     to 'readable' marks ._readableState.needReadable=true
-     */
-    Readable.prototype.on = function (eventName, cb) {
-        var ret = Stream.prototype.on.call(this, eventName, cb),
-            state = this._readableState;
-
-        if (eventName === 'readable' && this.readable) {
-            // Start reading on the first readable listener
-            if ( ! state.readableListening) {
-                state.readableListening = true;
-                state.emittedReadable = false;
-                state.needReadable = true;
-                if ( ! state.reading) {
-                    this.read(0);
-                } else if (state.buffer.length) {
-                    this._emitReadable();
-                }
-            }
+            });
         }
     };
 
@@ -387,12 +438,6 @@ define(['stream', 'stream/util'], function (Stream, util) {
 
         this.decoder = null;
         this.encoding = null;
-        if (opts.encoding) {
-        if (!StringDecoder)
-          StringDecoder = require('string_decoder').StringDecoder;
-        this.decoder = new StringDecoder(opts.encoding);
-        this.encoding = opts.encoding;
-        }
     }
 
     return Readable;
