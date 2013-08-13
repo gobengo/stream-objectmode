@@ -4,6 +4,10 @@ require.config({
     'jasmine-html': 'lib/jasmine/lib/jasmine-core/jasmine-html',
     "event-emitter": 'lib/event-emitter/src/event-emitter'
   },
+  packages: [{
+    name: 'stream',
+    location: 'src/'
+  }],
   shim: {
     jasmine: {
         exports: 'jasmine'
