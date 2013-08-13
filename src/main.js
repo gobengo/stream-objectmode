@@ -1,8 +1,7 @@
 define([
     'stream/util',
-    'event-emitter',
-    'stream/readable'],
-function (util, EventEmitter, Readable) {
+    'event-emitter'],
+function (util, EventEmitter) {
     "use strict";
 
     /**
@@ -13,6 +12,5 @@ function (util, EventEmitter, Readable) {
     }
     util.inherits(Stream, EventEmitter);
 
-    Stream.Readable = Readable;
     return Stream;
 });
