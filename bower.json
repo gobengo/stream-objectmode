@@ -1,0 +1,14 @@
+{
+  "name": "stream",
+  "version": "0.0.0",
+  "main": [
+    "./src/main.js"
+  ],
+  "dependencies": {
+    "requirejs": "~2.1.5",
+    "event-emitter": "https://github.com/Livefyre/event-emitter.git"
+  },
+  "devDependencies": {
+    "jasmine": "*"
+  }
+}
