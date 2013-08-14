@@ -63,6 +63,11 @@ define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Read
             it('is a method on Readable instances', function () {
                 expect(stream.push instanceof Function).toBe(true);
             });
+            it('can be called with multiple arguments, and each arg is added' +
+               'to the readable buffer', function () {
+                stream.push(1,2,3);
+                expect(stream._readableState.buffer.length).toBe(3);
+            });
             describe('when called with a chunk of data', function () {
                 var chunk,
                     onReadableSpy;
@@ -111,6 +116,20 @@ define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Read
                 it('the stream does not emit end', function () {
                     expect(onEndSpy).not.toHaveBeenCalled();
                 });
+            });
+        });
+        describe('.unshift', function () {
+            var stream;
+            beforeEach(function () {
+                stream = new Readable();
+            });
+            it('is a method on Readable instances', function () {
+                expect(stream.unshift instanceof Function).toBe(true);
+            });
+            it('can be called with multiple arguments, and each arg is added' +
+               'to the readable buffer', function () {
+                stream.unshift(1,2,3);
+                expect(stream._readableState.buffer.length).toBe(3);
             });
         });
     });

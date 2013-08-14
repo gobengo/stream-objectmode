@@ -33,12 +33,13 @@ define(['stream', 'stream/util'], function (Stream, util) {
      *     push(chunk) call is made.
      * The Readable class works by putting data into a read queue to be pulled
      *     out later by calling the read() method when the 'readable' event fires.
-     * @param chunk {object} Chunk of data to push into the read queue.
+     * @param chunk {...object} Chunk of data to push into the read queue.
      *     if chunk === null, that signals the end of data
      * @returns {boolean} Whether or not more pushes should be performed
      */
     Readable.prototype.push = function (chunk) {
-        return this._addToBuffer(chunk, false);
+        var chunks = Array.prototype.slice.call(arguments);
+        return this._addToBuffer.apply(this, [false].concat(chunks));
     };
 
 
@@ -46,11 +47,12 @@ define(['stream', 'stream/util'], function (Stream, util) {
      * Push a chunk onto the front of the internal buffer.
      * This is useful in certain cases where a stream is being consumed by a
      * parser, which needs to "un-consume" some data that it has optimistically pulled out of the source, so that the stream can be passed on to some other party.
-     * @param chunk {object} Chunk of data to unshift onto the read queue
+     * @param chunk {...object} Chunk of data to unshift onto the read queue
      * @returns {boolean} Whether or not more pushes should be performed
      */
     Readable.prototype.unshift = function (chunk) {
-        return this._addToBuffer(chunk, true);
+        var chunks = Array.prototype.slice.call(arguments);
+        return this._addToBuffer.apply(this, [true].concat(chunks));
     };
 
 
@@ -58,32 +60,33 @@ define(['stream', 'stream/util'], function (Stream, util) {
      * @private
      * Common implementation shared between .push and .unshift
      * Both methods mutate to read buffer
-     * @param chunk {object} Chunk of data to add to the read queue
      * @param addToFront {boolean} Whether to add to the front or back of the
      *     buffer
+     * @param chunk {...object} Chunk of data to add to the read queue
      * @returns {boolean} Whether this stream should have more data pushed
      *     to it
      */
-    Readable.prototype._addToBuffer = function (chunk, addToFront) {
-        var state = this._readableState;
-        if (chunk === null || chunk === undefined) {
+    Readable.prototype._addToBuffer = function (addToFront, firstChunk) {
+        var chunks = Array.prototype.slice.call(arguments, 1),
+            state = this._readableState;
+        if (firstChunk === null || firstChunk === undefined) {
             // End of file.
             state.reading = false;
             // Start wrapping up if we haven't before
             if ( ! state.ended) {
                 this._endReadable();
             }
-        } else if (state.objectMode || chunk && chunk.length > 0) {
+        } else {
             if (state.ended && ! addToFront) {
                 this.emit('error', new Error("readable.push() called after EOF"));
             } else if (state.endEmitted && addToFront) {
                 this.emit('error', new Error("readable.unshift() called after end event"));
             } else {
                 if (addToFront) {
-                    state.buffer.unshift(chunk);
+                    state.buffer.unshift.apply(state.buffer, chunks);
                 } else {
                     state.reading = false;
-                    state.buffer.push(chunk);
+                    state.buffer.push.apply(state.buffer, chunks);
                 }
                 // Now that we've pushed data to the buffer,
                 // let listeners know we're readable
