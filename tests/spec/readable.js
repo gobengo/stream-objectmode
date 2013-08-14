@@ -19,6 +19,7 @@ define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Read
                 stream;
             beforeEach(function() {
                 stream = new Readable();
+                spyOn(stream, '_read').andCallThrough();
                 items = [1,/a/gi,3,{},'5',6];
                 for (var i=0, numItems = items.length; i < numItems; i++) {
                     stream.push(items[i]);
@@ -27,9 +28,10 @@ define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Read
             it('is a method on Readable instances', function () {
                 expect(stream.read instanceof Function).toBe(true);
             });
-            xit('returns null if called with 0', function () {
+            it('returns null if called with 0', function () {
                 // In this case, it should actually call ._read
                 expect(stream.read(0)).toBe(null);
+                expect(stream._read).toHaveBeenCalled();
             });
             it('returns the first item on the buffer if called with no arguments', function () {
                 expect(stream.read()).toEqual(items[0]);
