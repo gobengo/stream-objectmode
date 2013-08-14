@@ -271,7 +271,7 @@ define(['stream', 'stream/util'], function (Stream, util) {
      * Implement this function, but do NOT call it directly.
      * When data is available, put it into the read queue by calling
      *     readable.push(chunk). If push returns false, then you should stop
-     *     reading. When _read is called again, you should start pushing more.
+     *     pushing. When _read is called again, you should start pushing more.
      */
     Readable.prototype._read = function () {
         this.emit('error', new Error('._read() not implemented'));
