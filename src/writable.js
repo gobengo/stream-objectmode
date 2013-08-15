@@ -8,9 +8,88 @@ define(['stream', 'stream/util'], function (Stream, util) {
 
 	util.inherits(Writable, Stream);
 
+
+	Writable.prototype.write = function (chunk, errback) {
+		var state = this._writableState,
+			ret = false,
+			writeAfterEndErr;
+
+		if (typeof errback !== 'function') {
+			errback = function () {};
+		}
+
+		if (state.ended) {
+			writeAfterEndErr = new Error('.write() called after stream end');
+			this.emit('error', writeAfterEndErr);
+			util.nextTick(function () {
+				errback(writeAfterEndErr);
+			});
+		} else {
+
+		}
+		return ret;
+	};
+
 	
 	Writable.prototype.pipe = function () {
 		this.emit('error', new Error('Cannot pipe. Not readable'));
+	};
+
+
+	Writable.prototype.end = function (chunk, errback) {
+		var state = this._writableState;
+
+		// If only passed an errback
+		if (typeof chunk === 'function') {
+			errback = chunk;
+			chunk = null;
+		}
+
+		// If passed a chunk
+		if (typeof chunk !== 'undefined' && chunk !== null) {
+			this.write(chunk);
+		}
+
+		// Ignore extra .end() calls
+		if ( ! state.ending && ! state.finished) {
+			// Shut it down
+			state.ending = true;
+			this._finishMaybe();
+			if (errback) {
+				if (state.finished) {
+					util.nextTick(errback);
+				} else {
+					this.once('finish', errback);
+				}
+			}
+			state.ended = true;
+		}
+	};
+
+
+	/**
+	 * @private
+	 */
+	Writable.prototype._finishMaybe = function () {
+		var state = this._writableState,
+			needToFinish = this._needFinish();
+		if (needToFinish) {
+			state.finished = true;
+			this.emit('finish');
+		}
+		return needToFinish;
+	};
+
+
+	/**
+	 * @private
+	 */
+	Writable.prototype._needFinish = function () {
+		var state = this._writableState;
+		return (state.ending &&
+				state.buffer.length === 0 &&
+				! state.finished &&
+				! state.writing);
 	};
 
 
