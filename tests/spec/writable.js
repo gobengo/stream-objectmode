@@ -25,7 +25,7 @@ define(['jasmine', 'stream', 'stream/writable'], function (jasmine, Stream, Writ
                 stream.on('error', onErrorSpy);
                 stream.pipe();
                 waitsFor(function () {
-                    return onErrorSpy.callCount
+                    return onErrorSpy.callCount;
                 }, 'error to be emitted');
             });
         });
@@ -127,8 +127,8 @@ define(['jasmine', 'stream', 'stream/writable'], function (jasmine, Stream, Writ
                     runs(function () {
                         expect(afterWriteSpy.mostRecentCall.args[0]).toBeTruthy();
                     });
-                })
-            })
+                });
+            });
             it('emits error if .write() is called after the stream is ended', function () {
 
             });

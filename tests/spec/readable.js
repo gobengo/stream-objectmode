@@ -48,7 +48,7 @@ define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Read
                 beforeEach(function () {
                     N = 20;
                     chunk = stream.read(N);
-                })
+                });
                 it('returns the first item on the buffer', function () {
                     expect(chunk).toBe(items[0]);
                 });
@@ -83,7 +83,7 @@ define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Read
                     }, 'stream to emit readable');
                     runs(function () {
                         expect(onReadableSpy).toHaveBeenCalled();
-                    })
+                    });
                 });
                 describe('and then called with null', function () {
                     var onEndSpy;
@@ -99,7 +99,7 @@ define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Read
                         while (stream.read() !== null) {}
                         waitsFor(function () {
                             return onEndSpy.callCount;
-                        }, 500, 'stream to emit end')
+                        }, 500, 'stream to emit end');
                         runs(function () {
                             expect(onEndSpy).toHaveBeenCalled();
                         });
