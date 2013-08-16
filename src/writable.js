@@ -25,12 +25,136 @@ define(['stream', 'stream/util'], function (Stream, util) {
 				errback(writeAfterEndErr);
 			});
 		} else {
-
+			ret = this._writeOrBuffer(chunk, errback);
 		}
+
 		return ret;
 	};
 
-	
+
+	Writable.prototype._writeOrBuffer = function (chunk, errback) {
+		var state = this._writableState,
+			ret = state.buffer.length < state.highWaterMark;
+
+		state.needDrain = !ret;
+
+		if (state.writing) {
+			state.buffer.push(new WriteReq(chunk, errback))
+		} else {
+			this._doWrite(chunk, errback);
+		}
+
+		return ret;
+	};
+
+
+	Writable.prototype._write = function(chunk, errback) {
+		errback(new Error('._write not implemented'));
+	};
+
+
+	Writable.prototype._onwrite = function (err) {
+		var self = this,
+			state = this._writableState,
+			sync = state.sync,
+			errback = state.writecb,
+			finished;
+
+		state.writing = false;
+		state.writecb = null;
+		state.writelen = 0;
+
+		if (err) {
+			if (sync) {
+				util.nextTick(function () {
+					errback(err);
+				});
+			} else {
+				errback(err);
+			}
+			this.emit('error', err);
+		} else {
+			finished = this._needFinish();
+			if ( ! finished && ! state.bufferProcessing && state.buffer.length) {
+				this._clearBuffer();
+			}
+
+			if (sync) {
+				util.nextTick(function () {
+					self._afterWrite(finished, errback);
+				});
+			} else {
+				this._afterWrite(finished, errback);
+			}
+		}
+	};
+
+
+	Writable.prototype._doWrite = function (chunk, errback) {
+		var state = this._writableState;
+		state.writelen = 1;
+		state.writecb = errback;
+		state.writing = true;
+		state.sync = true;
+		this._write(chunk, state.onwrite);
+		state.sync = false;
+	};
+
+
+	Writable.prototype._afterWrite = function (finished, errback) {
+		var state = this._writableState;
+		if ( ! finished) {
+			this._onwriteDrain();
+		}
+		errback();
+		if (finished) {
+			this._finishMaybe();
+		}
+	};
+
+
+	Writable.prototype._onwriteDrain = function () {
+		var state = this._writableState;
+		if (state.buffer.length === 0 && state.needDrain) {
+			state.needDrain = false;
+			this.emit('drain');
+		}
+	};
+
+
+	Writable.prototype._clearBuffer = function () {
+		var state = this._writableState;
+
+		state.bufferProcessing = true;
+
+		for (var c = 0; c < state.buffer.length; c++) {
+			var entry = state.buffer[c];
+			var chunk = entry.chunk;
+			var cb = entry.callback;
+			var len = 1;
+
+			this._doWrite(chunk, cb);
+
+			// if we didn't call the onwrite immediately, then
+		    // it means that we need to wait until it does.
+		    // also, that means that the chunk and cb are currently
+		    // being processed, so move the buffer counter past them.
+			if (state.writing) {
+				c++;
+				break;
+			}
+		}
+
+		state.bufferProcessing = false;
+		if (c < state.buffer.length) {
+			state.buffer = state.buffer.slice(c);
+		} else {
+			// Clear the buffer
+			state.buffer.length = 0;
+		}
+	};
+
+
 	Writable.prototype.pipe = function () {
 		this.emit('error', new Error('Cannot pipe. Not readable'));
 	};
@@ -93,9 +217,8 @@ define(['stream', 'stream/util'], function (Stream, util) {
 	};
 
 
-	function WriteReq(chunk, encoding, cb) {
+	function WriteReq(chunk, cb) {
 		this.chunk = chunk;
-		this.encoding = encoding;
 		this.callback = cb;
 	}
 
@@ -159,7 +282,7 @@ define(['stream', 'stream/util'], function (Stream, util) {
 
 		// the callback that's passed to _write(chunk,cb)
 		this.onwrite = function(er) {
-		onwrite(stream, er);
+			stream._onwrite(er);
 		};
 
 		// the callback that the user supplies to write(chunk,encoding,cb)

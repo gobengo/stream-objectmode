@@ -1,4 +1,5 @@
-define(['jasmine', 'stream', 'stream/writable'], function (jasmine, Stream, Writable) {
+define(['jasmine', 'stream', 'stream/writable', 'stream/util'],
+function (jasmine, Stream, Writable, util) {
     describe('stream/writable', function () {
         it('defines .WritableState', function () {
             expect(Writable.WritableState).toEqual(jasmine.any(Function));
@@ -94,6 +95,7 @@ define(['jasmine', 'stream', 'stream/writable'], function (jasmine, Stream, Writ
                 var data = 'chunk';
                 expect([true, false]).toContain(stream.write(data));
             });
+
             describe('when called with a callback', function () {
                 var afterWriteSpy;
                 beforeEach(function () {
@@ -106,6 +108,7 @@ define(['jasmine', 'stream', 'stream/writable'], function (jasmine, Stream, Writ
                     }, 'write callback to be called', 1000);
                 });
             });
+
             describe('when called after the stream is ended', function () {
                 beforeEach(function () {
                     stream.end();
@@ -129,6 +132,7 @@ define(['jasmine', 'stream', 'stream/writable'], function (jasmine, Stream, Writ
                     });
                 });
             });
+
             it('emits error if .write() is called after the stream is ended', function () {
 
             });
