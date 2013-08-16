@@ -8,7 +8,7 @@ define(['stream/writable', 'stream/util'], function (Writable, util) {
     function WritableArray (array) {
         this._array = array || [];
         Writable.call(this);
-    };
+    }
     util.inherits(WritableArray, Writable);
 
     /**

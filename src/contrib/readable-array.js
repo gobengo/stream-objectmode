@@ -19,7 +19,7 @@ define(['stream/readable', 'stream/util'], function (Readable, util) {
      */
     ReadableArray.prototype._read = function () {
         this.push(this._array.shift());
-    }
+    };
 
 
     return ReadableArray;

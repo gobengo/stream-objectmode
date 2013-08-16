@@ -66,7 +66,7 @@ function (Stream, util, EventEmitter) {
 
         // End the writable destination
         function onend () {
-            dest.end()
+            dest.end();
         }
 
         // when the dest drains, it reduces the awaitDrain counter
@@ -164,7 +164,7 @@ function (Stream, util, EventEmitter) {
                 state.flowing = true;
                 src._flow();
             }
-        }
+        };
     };
 
 
@@ -312,7 +312,7 @@ function (Stream, util, EventEmitter) {
             }
             this._scheduleResume();
         }
-    }
+    };
 
 
     /**
@@ -341,7 +341,7 @@ function (Stream, util, EventEmitter) {
         if (state.flowing && ! state.reading) {
             this.read(0);
         }
-    }
+    };
 
 
     /**
