@@ -147,14 +147,13 @@ function (jasmine, Stream, Readable, Writable) {
             beforeEach(function () {
                 readable = new Readable();
                 readable._read = function () {
-                    this.push(1);
+                    var self = this;
+                    setTimeout(function () {
+                        self.push(1,2);
+                    }, 10);
                 };
                 writable = new Writable();
-                writable._write = function () {
-                    debugger;
-                }
                 spyOn(writable, '_write').andCallThrough();
-                readable = new Readable();
             });
             it('is a method on Readables', function () {
                 expect(readable.pipe).toEqual(jasmine.any(Function));
@@ -162,6 +161,16 @@ function (jasmine, Stream, Readable, Writable) {
             it('can be passed a writable', function () {
                 var pipeReturn = readable.pipe(writable);
                 expect(pipeReturn).toBe(writable);
+            });
+            it('calls writable._write with data from the readable', function () {
+                readable.pipe(writable);
+                waitsFor(function () {
+                    return writable._write.callCount === 2;
+                });
+                runs(function () {
+                    expect(writable._write).toHaveBeenCalledWith(1, jasmine.any(Function));
+                    expect(writable._write).toHaveBeenCalledWith(2, jasmine.any(Function));
+                });
             });
         });
 
@@ -235,6 +244,6 @@ function (jasmine, Stream, Readable, Writable) {
                 readable.on('data', function () {});
                 expect(readable.resume).toHaveBeenCalled();
             });
-        })
+        });
     });
 });
