@@ -1,4 +1,5 @@
-define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Readable) {
+define(['jasmine', 'stream', 'stream/readable', 'stream/writable'],
+function (jasmine, Stream, Readable, Writable) {
     describe('stream/readable', function () {
         describe('when constructed', function () {
             var stream;
@@ -41,6 +42,12 @@ define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Read
                 var N = 3,
                     chunk = stream.read(N);
                 expect(chunk).toBe(items[0]);
+            });
+            it('emits a data event', function () {
+                var onData = jasmine.createSpy('onData');
+                stream.on('data', onData);
+                var data = stream.read();
+                expect(onData).toHaveBeenCalledWith(data);
             });
             describe('when .read(N) is called and N > .state.buffer.length', function () {
                 var N,
@@ -118,6 +125,7 @@ define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Read
                 });
             });
         });
+
         describe('.unshift', function () {
             var stream;
             beforeEach(function () {
@@ -132,5 +140,101 @@ define(['jasmine', 'stream', 'stream/readable'], function (jasmine, Stream, Read
                 expect(stream._readableState.buffer.length).toBe(3);
             });
         });
+
+        describe('.pipe()', function () {
+            var readable,
+                writable;
+            beforeEach(function () {
+                readable = new Readable();
+                readable._read = function () {
+                    this.push(1);
+                };
+                writable = new Writable();
+                writable._write = function () {
+                    debugger;
+                }
+                spyOn(writable, '_write').andCallThrough();
+                readable = new Readable();
+            });
+            it('is a method on Readables', function () {
+                expect(readable.pipe).toEqual(jasmine.any(Function));
+            });
+            it('can be passed a writable', function () {
+                var pipeReturn = readable.pipe(writable);
+                expect(pipeReturn).toBe(writable);
+            });
+        });
+
+        describe('.resume()', function () {
+            var readable;
+            beforeEach(function () {
+                readable = new Readable();
+                readable._read = function () {
+                    var self = this;
+                    setTimeout(function () {
+                        self.push(1);
+                    }, 1);
+                };
+            });
+            it('is a method on Readable', function () {
+                expect(readable.resume).toEqual(jasmine.any(Function));
+            });
+            it('causes data events to be emitted', function () {
+                var onData = jasmine.createSpy('onData');
+                readable.on('data', onData);
+                readable.resume();
+                waitsFor(function () {
+                    return onData.callCount;
+                }, 'data to be emitted');
+            });
+        });
+
+        describe('.pause()', function () {
+            var readable;
+            beforeEach(function () {
+                readable = new Readable();
+                readable._read = function () {
+                    var self = this;
+                    setTimeout(function () {
+                        self.push(1, 1);
+                    }, 1);
+                };
+            });
+            it('is a method on Readable', function () {
+                expect(readable.pause).toEqual(jasmine.any(Function));
+            });
+            it('stops data events from beign emitted', function () {
+                var onData = jasmine.createSpy('onData').andCallFake(function () {
+                    readable.pause();
+                });
+                readable.on('data', onData);
+                readable.resume();
+                waitsFor(function () {
+                    return onData.callCount;
+                }, 'data to be emitted');
+                runs(function () {
+                    // Wasn't called again because we called pause the first time
+                    expect(onData.callCount).toBe(1);
+                });
+            });
+        });
+
+        describe('.on()', function () {
+            var readable;
+            beforeEach(function () {
+                readable = new Readable();
+                readable._read = function () {
+                    var self = this;
+                    setTimeout(function () {
+                        self.push(1, 1);
+                    }, 1);
+                };
+            });
+            it('calls .resume() when a data listener is added', function () {
+                spyOn(readable, 'resume').andCallThrough();
+                readable.on('data', function () {});
+                expect(readable.resume).toHaveBeenCalled();
+            });
+        })
     });
 });
