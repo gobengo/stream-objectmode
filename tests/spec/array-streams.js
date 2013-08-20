@@ -65,15 +65,5 @@ function (jasmine, util, ReadableArray, WritableArray, StringTransform) {
                 expect(writable.get()).toEqual(['1','2','3']);
             });
         });
-        it('transforms inputs to Strings with .write(data, callback)', function () {
-            var writeSpy = jasmine.createSpy('write callback');
-            stringTransform.write(1, writeSpy);
-            waitsFor(function () {
-                return writeSpy.callCount;
-            }, 'write callback to be called');
-            runs(function () {
-                expect(writeSpy).toHaveBeenCalledWith('1');
-            });
-        });
     });
 });
