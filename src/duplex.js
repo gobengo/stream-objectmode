@@ -9,7 +9,7 @@ function (Readable, Writable, util, inherits) {
 			this.readable = false;
 		}
 
-		if (opts && opts.writable == false) {
+		if (opts && opts.writable === false) {
 			this.writable = false;
 		}
 

@@ -78,7 +78,7 @@ function (Duplex, inherits) {
                 this._read(rs.highWaterMark);
             }
         }
-    }
+    };
 
 
     Transform.prototype._afterTransform = function (err, data) {
@@ -130,7 +130,7 @@ function (Duplex, inherits) {
         }
 
         return this.push(null);
-    }
+    };
 
 
     function TransformState (opts, stream) {
