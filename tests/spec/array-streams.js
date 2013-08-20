@@ -52,7 +52,7 @@ function (jasmine, util, ReadableArray, WritableArray, StringTransform) {
         beforeEach(function () {
             stringTransform = new StringTransform();
         });
-        it('transforms inputs to Strings', function () {
+        it('transforms inputs to Strings with pipe', function () {
             var readable = new ReadableArray([1,2,3]),
                 writable = new WritableArray(),
                 onEndSpy = jasmine.createSpy('onReadableEnd');
@@ -63,6 +63,16 @@ function (jasmine, util, ReadableArray, WritableArray, StringTransform) {
             }, 'readable to emit end', 1000);
             runs(function () {
                 expect(writable.get()).toEqual(['1','2','3']);
+            });
+        });
+        it('transforms inputs to Strings with .write(data, callback)', function () {
+            var writeSpy = jasmine.createSpy('write callback');
+            stringTransform.write(1, writeSpy);
+            waitsFor(function () {
+                return writeSpy.callCount;
+            }, 'write callback to be called');
+            runs(function () {
+                expect(writeSpy).toHaveBeenCalledWith('1');
             });
         });
     });
