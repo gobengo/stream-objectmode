@@ -233,7 +233,7 @@ define(['stream', 'stream/util', 'inherits'], function (Stream, util, inherits) 
         // Note: 0 is a valid value, means that we always return false if
         // the entire buffer is not flushed immediately on write()
         var hwm = opts.highWaterMark;
-        this.highWaterMark = (hwm || hwm === 0) ? hwm : 16 * 1024;
+        this.highWaterMark = (hwm || hwm === 0) ? hwm : 0;
 
         // object stream flag to indicate whether or not this stream
         // contains buffers or objects.

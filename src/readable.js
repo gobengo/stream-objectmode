@@ -6,7 +6,7 @@ function (Stream, util, EventEmitter, inherits) {
      * Base class for Readable Streams
      * @constructor
      * @param [opts] {object} Configuration options
-     * @param [opts.highWaterMark=50] {number} The maximum number of objects to
+     * @param [opts.highWaterMark=0] {number} The maximum number of objects to
      *     store in the internal buffer before ceasing to read from upstream
      */
     function Readable (opts) {
@@ -19,13 +19,6 @@ function (Stream, util, EventEmitter, inherits) {
         Stream.call(this);
     }
     inherits(Readable, Stream);
-
-
-    /**
-     * The Default .highWaterMark for Readables
-     * This will be used if none is specified on construction
-     */
-    var DEFAULT_HIGH_WATER_MARK = 50;
 
 
     /**
@@ -623,7 +616,7 @@ function (Stream, util, EventEmitter, inherits) {
         // the point at which it stops calling _read() to fill the buffer
         // Note: 0 is a valid value, means "don't call _read preemptively ever"
         var hwm = opts.highWaterMark;
-        this.highWaterMark = (hwm || hwm === 0) ? hwm : DEFAULT_HIGH_WATER_MARK;
+        this.highWaterMark = (hwm || hwm === 0) ? hwm : 0;
 
         // cast to ints.
         this.highWaterMark = ~~this.highWaterMark;
