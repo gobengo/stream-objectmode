@@ -1,5 +1,5 @@
-define(['stream/readable', 'stream/writable', 'stream/util'],
-function (Readable, Writable, util) {
+define(['stream/readable', 'stream/writable', 'stream/util', 'inherits'],
+function (Readable, Writable, util, inherits) {
 
 	function Duplex (opts) {
 		Readable.call(this, opts);
@@ -21,8 +21,8 @@ function (Readable, Writable, util) {
 		this.once('end', onend);
 	}
 
-	util.inherits(Duplex, Readable);
-	util.prototypallyInherits(Duplex, Writable);
+	inherits(Duplex, Readable);
+	inherits.parasitically(Duplex, Writable);
 
 	// Enforce noHalfOpen
 	function onend () {

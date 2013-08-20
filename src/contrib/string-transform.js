@@ -1,4 +1,4 @@
-define(['stream/transform', 'stream/util'], function (Transform, util) {
+define(['stream/transform', 'inherits'], function (Transform, inherits) {
     "use strict";
 
     /**
@@ -8,7 +8,7 @@ define(['stream/transform', 'stream/util'], function (Transform, util) {
         Transform.call(this);
     }
 
-    util.inherits(StringTransform, Transform);
+    inherits(StringTransform, Transform);
 
 
     /**

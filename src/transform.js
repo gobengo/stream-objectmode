@@ -1,5 +1,5 @@
-define(['stream/duplex', 'stream/util'],
-function (Duplex, util) {
+define(['stream/duplex', 'inherits'],
+function (Duplex, inherits) {
 
     function Transform (opts) {
         var stream = this,
@@ -25,7 +25,7 @@ function (Duplex, util) {
         });
     }
 
-    util.inherits(Transform, Duplex);
+    inherits(Transform, Duplex);
 
 
     /**
