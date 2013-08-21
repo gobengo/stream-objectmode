@@ -16,15 +16,10 @@ function (jasmine, Stream, Readable, Writable) {
         });
 
         describe('.read', function () {
-            var items,
-                stream;
+            var stream;
             beforeEach(function() {
                 stream = new Readable();
                 spyOn(stream, '_read').andCallThrough();
-                items = [1,/a/gi,3,{},'5',6];
-                for (var i=0, numItems = items.length; i < numItems; i++) {
-                    stream.push(items[i]);
-                }
             });
             it('is a method on Readable instances', function () {
                 expect(stream.read instanceof Function).toBe(true);
@@ -32,34 +27,49 @@ function (jasmine, Stream, Readable, Writable) {
             it('returns null if called with 0', function () {
                 // In this case, it should actually call ._read
                 expect(stream.read(0)).toBe(null);
-                expect(stream._read).toHaveBeenCalled();
-            });
-            it('returns the first item on the buffer if called with no arguments', function () {
-                expect(stream.read()).toEqual(items[0]);
-                expect(stream._readableState.buffer.length).toBe(items.length - 1);
-            });
-            it('always returns 1 item if .read(N) is called (objectMode)', function () {
-                var N = 3,
-                    chunk = stream.read(N);
-                expect(chunk).toBe(items[0]);
+                waitsFor(function () {
+                    return stream._read.callCount;
+                }, '_read to be called');
+                runs(function () {
+                    expect(stream._read).toHaveBeenCalled();
+                })
             });
             it('emits a data event', function () {
                 var onData = jasmine.createSpy('onData');
+                stream.push('meme');
                 stream.on('data', onData);
                 var data = stream.read();
                 expect(onData).toHaveBeenCalledWith(data);
             });
-            describe('when .read(N) is called and N > .state.buffer.length', function () {
-                var N,
-                    chunk;
+            describe('and items are .written()', function () {
+                var items;
                 beforeEach(function () {
-                    N = 20;
-                    chunk = stream.read(N);
+                    items = [1,/a/gi,3,{},'5',6];
+                    for (var i=0, numItems = items.length; i < numItems; i++) {
+                        stream.push(items[i]);
+                    }
                 });
-                it('returns the first item on the buffer', function () {
+                it('returns the first item on the buffer if called with no arguments', function () {
+                    expect(stream.read()).toEqual(items[0]);
+                    expect(stream._readableState.buffer.length).toBe(items.length - 1);
+                });
+                it('always returns 1 item if .read(N) is called (objectMode)', function () {
+                    var N = 3,
+                        chunk = stream.read(N);
                     expect(chunk).toBe(items[0]);
                 });
-            });
+                describe('when .read(N) is called and N > .state.buffer.length', function () {
+                    var N,
+                        chunk;
+                    beforeEach(function () {
+                        N = 20;
+                        chunk = stream.read(N);
+                    });
+                    it('returns the first item on the buffer', function () {
+                        expect(chunk).toBe(items[0]);
+                    });
+                });
+            })
         });
 
         describe('.push', function () {
@@ -153,7 +163,9 @@ function (jasmine, Stream, Readable, Writable) {
                     }, 10);
                 };
                 writable = new Writable();
-                spyOn(writable, '_write').andCallThrough();
+                spyOn(writable, '_write').andCallFake(function (chunk, done) {
+                    done();
+                });
             });
             it('is a method on Readables', function () {
                 expect(readable.pipe).toEqual(jasmine.any(Function));

@@ -52,7 +52,7 @@ function (Duplex, inherits) {
     Transform.prototype._read = function () {
         var ts = this._transformState;
 
-        if (ts.writechunk && ts.writecb && ! ts.transforming) {
+        if (ts.writechunk !== null && ts.writecb && ! ts.transforming) {
             ts.transforming = true;
             this._transform(ts.writechunk, ts.afterTransform);
         } else {
