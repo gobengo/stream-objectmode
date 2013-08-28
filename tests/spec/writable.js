@@ -36,6 +36,9 @@ function (jasmine, Stream, Writable, util) {
             var stream;
             beforeEach(function () {
                 stream = new Writable();
+                stream._write = function (chunk, done) {
+                    done();
+                };
                 spyOn(stream, 'write').andCallThrough();
             });
             it('is a method on Writables', function () {
@@ -87,6 +90,9 @@ function (jasmine, Stream, Writable, util) {
             var stream;
             beforeEach(function () {
                 stream = new Writable();
+                stream._write = function (chunk, done) {
+                    done();
+                }
             });
             it('is a method on Writables', function () {
                 expect(stream.write).toEqual(jasmine.any(Function));
@@ -123,12 +129,14 @@ function (jasmine, Stream, Writable, util) {
                 });
                 it('passes an error to the .write callback', function () {
                     var afterWriteSpy = jasmine.createSpy('.write callback');
+                    // Must have an error callback or EE will throw
+                    stream.on('error', function () {});
                     stream.write('data', afterWriteSpy);
                     waitsFor(function () {
                         return afterWriteSpy.callCount;
                     }, 'write callback to be called');
                     runs(function () {
-                        expect(afterWriteSpy.mostRecentCall.args[0]).toBeTruthy();
+                        expect(afterWriteSpy.mostRecentCall.args[0] instanceof Error).toBe(true);
                     });
                 });
             });

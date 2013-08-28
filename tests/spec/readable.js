@@ -19,7 +19,9 @@ function (jasmine, Stream, Readable, Writable) {
             var stream;
             beforeEach(function() {
                 stream = new Readable();
-                spyOn(stream, '_read').andCallThrough();
+                spyOn(stream, '_read').andCallFake(function () {
+
+                });
             });
             it('is a method on Readable instances', function () {
                 expect(stream.read instanceof Function).toBe(true);
@@ -163,9 +165,8 @@ function (jasmine, Stream, Readable, Writable) {
                     }, 10);
                 };
                 writable = new Writable();
-                spyOn(writable, '_write').andCallFake(function (chunk, done) {
-                    done();
-                });
+                writable._write = function (chunk, done) { done(); };
+                spyOn(writable, '_write').andCallThrough();
             });
             it('is a method on Readables', function () {
                 expect(readable.pipe).toEqual(jasmine.any(Function));
@@ -183,6 +184,53 @@ function (jasmine, Stream, Readable, Writable) {
                     expect(writable._write).toHaveBeenCalledWith(1, jasmine.any(Function));
                     expect(writable._write).toHaveBeenCalledWith(2, jasmine.any(Function));
                 });
+            });
+        });
+
+        describe('.unpipe()', function () {
+            var readable,
+                writable;
+            beforeEach(function () {
+                readable = new Readable();
+                readable._read = function () {
+                    var self = this;
+                    setTimeout(function () {
+                        self.push(1,2);
+                    }, 10);
+                };
+                writable = new Writable();
+                spyOn(writable, '_write').andCallFake(function (chunk, done) {
+                    done();
+                });
+            });
+            it('is a method on Readables', function () {
+                expect(readable.unpipe).toEqual(jasmine.any(Function));
+            });
+            it('does not throw if called when there are no pipes', function () {
+                expect(function () {
+                    readable.unpipe(writable);
+                }).not.toThrow();
+            });
+            it('emits unpipe on the destination', function () {
+                var onUnpipe = jasmine.createSpy('onUnpipe');
+                writable.on('unpipe', onUnpipe);
+                readable.pipe(writable);
+                waitsFor(function () {
+                    return writable._write.callCount === 2;
+                });
+                runs(function () {
+                    readable.unpipe(writable);
+                    expect(onUnpipe).toHaveBeenCalled();
+                });
+            });
+            it('removes all pipes if not passed an arg', function () {
+                var writable2 = new Writable();
+                writable2._write = function (chunk, done) { done(); };
+                readable.pipe(writable);
+                readable.pipe(writable2);
+                expect(readable._readableState.pipes.length).toBe(2);
+                readable.unpipe();
+                expect(readable._readableState.pipes.length).toBe(0);                
             });
         });
 

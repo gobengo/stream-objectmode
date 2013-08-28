@@ -141,6 +141,71 @@ function (Stream, util, EventEmitter, inherits) {
 
 
     /**
+     * This method will remove the hooks set up for a previous pipe() call.
+     * If the destination is not specified, then all pipes are removed.
+     * If the destination is specified, but no pipe is set up for it, then
+     * this is a no-op.
+     */
+    Readable.prototype.unpipe = function (dest) {
+        var state = this._readableState;
+
+        // If there are no pipes, don't do anything
+        if (state.pipes.length === 0) {
+            return this;
+        }
+
+        // Only one pipe
+        if (state.pipes.length === 1) {
+            if (dest && dest !== state.pipes[0]) {
+                // passed a dest we're not piping to
+                return this;
+            }
+
+            if (!dest) {
+                dest = state.pipes[0];
+            }
+
+            state.pipes = [];
+            state.flowing = false;
+
+            if (dest) {
+                dest.emit('unpipe', this);
+            }
+
+            return this;
+        }
+
+        // Multiple Pipes
+
+        // If dest not passed, unpipe all of them
+        if ( ! dest) {
+            var dests = state.pipes,
+                numDests = dests.length;
+
+            state.pipes = [];
+            state.flowing = false;
+
+            for (var i=0; i < numDests; i++) {
+                dests[i].emit('unpipe', this);
+            }
+
+            return this;
+        }
+
+        // Dest was passed, only unpipe that one
+        var indexOfDest = state.pipes.indexOf(dest);
+        if (indexOfDest === -1) {
+            return this;
+        }
+
+        state.pipes.splice(indexOfDest, 1);
+        dest.emit('unpipe', this);
+
+        return this;
+    };
+
+
+    /**
      * Get a function that will be excuted by a pipe destination
      * so that this readable continues piping when the writable drains
      */
