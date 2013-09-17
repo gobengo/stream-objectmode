@@ -42,7 +42,7 @@ function (Duplex, inherits) {
 
     Transform.prototype.push = function (chunk) {
         this._transformState.needTransform = false;
-        return Duplex.prototype.push.call(this, chunk);
+        return Duplex.prototype.push.apply(this, arguments);
     };
 
 
