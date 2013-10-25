@@ -283,7 +283,7 @@ function (Stream, util, EventEmitter, inherits) {
     Readable.prototype._addToBuffer = function (addToFront, firstChunk) {
         var chunks = Array.prototype.slice.call(arguments, 1),
             state = this._readableState;
-        if (firstChunk === null || firstChunk === undefined) {
+        if (firstChunk === null) {
             // End of file.
             state.reading = false;
             // Start wrapping up if we haven't before
@@ -302,9 +302,9 @@ function (Stream, util, EventEmitter, inherits) {
                     state.reading = false;
                     state.buffer.push.apply(state.buffer, chunks);
                 }
-                // Now that we've pushed data to the buffer,
+                // If we've pushed data to the buffer,
                 // let listeners know we're readable
-                if (state.needReadable) {
+                if (firstChunk && state.needReadable) {
                     this._emitReadable();
                 }
                 this._maybeReadMore();

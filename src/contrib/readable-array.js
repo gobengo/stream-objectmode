@@ -18,7 +18,7 @@ define(['stream/readable', 'inherits'], function (Readable, inherits) {
      * then pass it to this.push()
      */
     ReadableArray.prototype._read = function () {
-        this.push(this._array.shift());
+        this.push(this._array.shift() || null);
     };
 
 

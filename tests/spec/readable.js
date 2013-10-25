@@ -1,5 +1,5 @@
-define(['jasmine', 'stream', 'stream/readable', 'stream/writable'],
-function (jasmine, Stream, Readable, Writable) {
+define(['jasmine', 'stream', 'stream/readable', 'stream/writable', 'stream/util'],
+function (jasmine, Stream, Readable, Writable, util) {
     describe('stream/readable', function () {
         describe('when constructed', function () {
             var stream;
@@ -134,6 +134,60 @@ function (jasmine, Stream, Readable, Writable) {
                 });
                 it('the stream does not emit end', function () {
                     expect(onEndSpy).not.toHaveBeenCalled();
+                });
+            });
+
+            describe('when called with undefined, then rekicked', function () {
+                var onEndSpy, onReadableSpy, writable;
+                beforeEach(function () {
+                    writable = new Writable();
+                    writable._write = function (chunk, done) { done(); };
+                    stream._read = function () {
+                        setTimeout(function () {
+                            // No data now, but someone needs to call .read(0)
+                            // later to have me try again
+                            // This should not trigger 'readable'
+                            stream.push();
+                            // But I'll do it myself to re-kick the loop
+                            setTimeout(function () {
+                                stream.read(0);
+                            }, 100);
+                        }, 50)
+                    }
+                    onEndSpy = jasmine.createSpy('onEndSpy');
+                    spyOn(stream, '_read').andCallThrough();
+                    spyOn(stream, 'push').andCallThrough();
+                    stream.on('end', onEndSpy);
+                    onReadableSpy = jasmine.createSpy('onReadableSpy');
+                    stream.on('readable', onReadableSpy);
+                });
+                it('_read is called again, and the stream does not emit end', function () {
+                    var timesToRead = 2;
+                    // first readable will just be on construction
+                    // second readable will be due to the stream itself
+                    // calling .read(0);
+                    stream.on('readable', function () {
+                        console.log('readable');
+                        if (timesToRead--) {
+                            var content = stream.read();
+                        }
+                    });
+                    waitsFor(function () {
+                        return stream.push.callCount === 1;
+                    });
+                    runs(function () {
+                        // Readable shouldn't have been called
+                        // after the initial one on construction
+                        expect(onReadableSpy.callCount).toBe(1);
+                    })
+                    waitsFor(function () {
+                        return stream._read.callCount === 2;
+                    });
+                    runs(function () {
+                        // 2 to make sure that .push() didn't emit a readable
+                        expect(onReadableSpy.callCount).toBe(2);
+                        expect(onEndSpy).not.toHaveBeenCalled();
+                    });
                 });
             });
         });
