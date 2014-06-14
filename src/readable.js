@@ -1,4 +1,4 @@
-define(['stream', 'stream/util', 'event-emitter', 'inherits'],
+define(['stream/stream', 'stream/util', 'event-emitter', 'inherits'],
 function (Stream, util, EventEmitter, inherits) {
     "use strict";
 

@@ -1,7 +1,12 @@
 define([
     'inherits',
-    'event-emitter'],
-function (inherits, EventEmitter) {
+    'event-emitter',
+    './readable',
+    './writable',
+    './transform',
+    './duplex',
+    './passthrough'],
+function (inherits, EventEmitter, Readable, Writable, Transform, Duplex, PassThrough) {
     "use strict";
 
     /**
@@ -12,5 +17,10 @@ function (inherits, EventEmitter) {
     }
     inherits(Stream, EventEmitter);
 
+    Stream.Readable = Readable;
+    Stream.Writable = Writable;
+    Stream.Transform = Transform;
+    Stream.Duplex = Duplex;
+    Stream.PassThrough = PassThrough;
     return Stream;
 });

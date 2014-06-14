@@ -1,4 +1,4 @@
-define(['stream', 'stream/util', 'inherits'], function (Stream, util, inherits) {
+define(['stream/stream', 'stream/util', 'inherits'], function (Stream, util, inherits) {
 
     function Writable (opts) {
         this.writable = true;
