@@ -5,7 +5,7 @@ define(['stream/readable', 'inherits'], function (Readable, inherits) {
      * A Readable that emits the items of an array
      */
     function ReadableArray (array) {
-        this._array = array || [];
+        this._array = array ? array.slice() : [];
         Readable.call(this);
     }
 
