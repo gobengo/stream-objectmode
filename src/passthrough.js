@@ -1,16 +1,12 @@
-define(['stream/transform', 'inherits'], function (Transform, inherits) {
+var Transform = require('./transform');
+var inherits = require('inherits');
 
-	function PassThrough (opts) {
-		Transform.call(this, opts);
-	}
+var PassThrough = module.exports = function PassThrough (opts) {
+	Transform.call(this, opts);
+}
 
-	inherits(PassThrough, Transform);
+inherits(PassThrough, Transform);
 
-
-	PassThrough.prototype._transform = function (chunk, done) {
-		done(null, chunk);
-	};
-
-
-	return PassThrough;
-});
+PassThrough.prototype._transform = function (chunk, done) {
+	done(null, chunk);
+};
