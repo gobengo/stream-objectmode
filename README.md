@@ -21,3 +21,18 @@ myRandomNumberStream.on('data', function (randomNumber) {
     console.log(randomNumber);
 });
 ```
+
+There is one slight addition from what node implements, and that is the `Readable.prototype.forEach` method, which behaves much like the `Observable.prototype.forEach` method (docced as [subscribe](https://github.com/Reactive-Extensions/RxJS/blob/master/doc/api/core/observable.md#rxobservableprototypesubscribeobserver--onnext-onerror-oncompleted)) in [RxJS](https://github.com/Reactive-Extensions/RxJS/blob/master/src/core/observable.js#L28);
+
+```javascript
+// full signature
+var subscription = readable.forEach(onData, onError, onEnd);
+// Remove relevant listeners
+subscription.dispose();
+
+// or, more commonly
+readable.forEach(function (thing) {
+    // do something
+    console.log(thing);
+});
+```
