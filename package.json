@@ -11,7 +11,7 @@
   "devDependencies": {
     "bower": "1.0.0",
     "http-server": "*",
-    "requirejs": "~2.1.6",
+    "requirejs": "2.1.9",
     "jshint": "~1.1.0"
   },
   "scripts": {
