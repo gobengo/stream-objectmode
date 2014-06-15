@@ -1,12 +1,16 @@
 {
   "name": "stream-objectmode",
+  "version": "0.0.0",
   "description": "Browser-compatible implementation of Node 0.10.x streams2 objects",
   "author": "Livefyre <support@livefyre.com>",
   "contributors": {
     "name": "Benjamin Goering",
     "email": "ben@livefyre.com"
   },
-  "version": "0.2.1",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/gobengo/stream-objectmode"
+  },
   "main": "src/main.js",
   "devDependencies": {
     "bower": "1.0.0",
