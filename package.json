@@ -16,5 +16,8 @@
   "scripts": {
     "start": "./node_modules/http-server/bin/http-server .",
     "hint": "./node_modules/jshint/bin/jshint src/ tests/; echo"
+  },
+  "dependencies": {
+    "util-extend": "^1.0.1"
   }
 }

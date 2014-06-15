@@ -10,6 +10,7 @@
     "inherits": "git@github.com:gobengo/inherits.git"
   },
   "devDependencies": {
-    "jasmine": "*"
+    "jasmine": "*",
+    "cajon": "~0.2.4"
   }
 }
