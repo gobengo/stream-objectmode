@@ -1,5 +1,5 @@
 {
-  "name": "stream",
+  "name": "stream-objectmode",
   "version": "0.2.1",
   "main": [
     "./src/main.js"

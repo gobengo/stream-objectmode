@@ -1,5 +1,5 @@
 {
-  "name": "iso-stream",
+  "name": "stream-objectmode",
   "description": "Browser-compatible implementation of Node 0.10.x streams2 objects",
   "author": "Livefyre <support@livefyre.com>",
   "contributors": {
