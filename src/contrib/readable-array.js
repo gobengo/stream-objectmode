@@ -1,26 +1,22 @@
-define(['stream/readable', 'inherits'], function (Readable, inherits) {
-    "use strict";
+'use strict';
+var Readable = require('../readable');
+var inherits = require('inherits');
 
-    /**
-     * A Readable that emits the items of an array
-     */
-    function ReadableArray (array) {
-        this._array = array ? array.slice() : [];
-        Readable.call(this);
-    }
+/**
+ * A Readable that emits the items of an array
+ */
+var ReadableArray = module.exports = function ReadableArray (array) {
+    this._array = array ? array.slice() : [];
+    Readable.call(this);
+}
 
-    inherits(ReadableArray, Readable);
+inherits(ReadableArray, Readable);
 
-
-    /**
-     * @private
-     * Called by Readable base when you should go get more data,
-     * then pass it to this.push()
-     */
-    ReadableArray.prototype._read = function () {
-        this.push(this._array.shift() || null);
-    };
-
-
-    return ReadableArray;
- });
+/**
+ * @private
+ * Called by Readable base when you should go get more data,
+ * then pass it to this.push()
+ */
+ReadableArray.prototype._read = function () {
+    this.push(this._array.shift() || null);
+};

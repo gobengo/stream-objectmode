@@ -6,7 +6,7 @@
     "name": "Benjamin Goering",
     "email": "ben@livefyre.com"
   },
-  "version": "0.2.0",
+  "version": "0.2.1",
   "devDependencies": {
     "bower": "1.0.0",
     "http-server": "*",
@@ -16,5 +16,8 @@
   "scripts": {
     "start": "./node_modules/http-server/bin/http-server .",
     "hint": "./node_modules/jshint/bin/jshint src/ tests/; echo"
+  },
+  "dependencies": {
+    "util-extend": "^1.0.1"
   }
 }

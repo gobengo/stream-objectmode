@@ -1,6 +1,6 @@
 {
   "name": "stream",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": [
     "./src/main.js"
   ],
@@ -10,6 +10,7 @@
     "inherits": "git@github.com:gobengo/inherits.git"
   },
   "devDependencies": {
-    "jasmine": "*"
+    "jasmine": "*",
+    "cajon": "~0.2.4"
   }
 }

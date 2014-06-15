@@ -1,16 +1,11 @@
-define([
-    'inherits',
-    'event-emitter'],
-function (inherits, EventEmitter) {
-    "use strict";
+"use strict";
+var inherits = require('inherits');
+var EventEmitter = require('event-emitter');
 
-    /**
-     * Base class for all Streams
-     */
-    function Stream (opts) {
-        EventEmitter.call(this);
-    }
-    inherits(Stream, EventEmitter);
-
-    return Stream;
-});
+/**
+ * Base class for all Streams
+ */
+var Stream = module.exports = function Stream (opts) {
+    EventEmitter.call(this);
+};
+inherits(Stream, EventEmitter);
