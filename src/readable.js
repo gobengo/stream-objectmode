@@ -444,6 +444,8 @@ Readable.prototype.on = function (eventName, cb) {
             }
         }
     }
+
+    return ret;
 };
 
 
