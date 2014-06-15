@@ -1,4 +1,4 @@
-define(['jasmine', 'stream', 'stream/readable', 'stream/writable', 'stream/util'],
+define(['jasmine', 'stream/stream', 'stream/readable', 'stream/writable', 'stream/util'],
 function (jasmine, Stream, Readable, Writable, util) {
     describe('stream/readable', function () {
         describe('when constructed', function () {

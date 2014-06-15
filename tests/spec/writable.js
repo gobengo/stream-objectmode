@@ -1,4 +1,4 @@
-define(['jasmine', 'stream', 'stream/writable', 'stream/util'],
+define(['jasmine', 'stream/stream', 'stream/writable', 'stream/util'],
 function (jasmine, Stream, Writable, util) {
     describe('stream/writable', function () {
         it('defines .WritableState', function () {
