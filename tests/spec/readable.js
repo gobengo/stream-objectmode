@@ -1,5 +1,5 @@
-define(['jasmine', 'stream/stream', 'stream/readable', 'stream/writable', 'stream/util'],
-function (jasmine, Stream, Readable, Writable, util) {
+define(['jasmine', 'stream/stream', 'stream/readable', 'stream/writable', 'stream/util', 'event-emitter'],
+function (jasmine, Stream, Readable, Writable, util, EventEmitter) {
     describe('stream/readable', function () {
         describe('when constructed', function () {
             var stream;
@@ -359,5 +359,36 @@ function (jasmine, Stream, Readable, Writable, util) {
                 expect(readable.resume).toHaveBeenCalled();
             });
         });
+
+        describe('.forEach()', function () {
+            var readable;
+            beforeEach(function () {
+                readable = new Readable();
+                readable._read = function () {
+                    var self = this;
+                    setTimeout(function () {
+                        self.push(1, 1);
+                    }, 1);
+                };
+            });
+            it('is like .on("data")', function () {
+                spyOn(readable, 'resume').andCallThrough();
+                readable.forEach(function () {});
+                expect(readable.resume).toHaveBeenCalled();
+            });
+            it('returns a disposable', function () {
+                EventEmitter;
+                var noOp = function () {};
+                var subscription = readable.forEach(noOp, noOp, noOp);
+                ['data', 'end', 'error'].forEach(function (event) {
+                    expect(EventEmitter.listenerCount(readable, event)).toBe(1);
+                });
+                
+                subscription.dispose();
+                ['data', 'end', 'error'].forEach(function (event) {
+                    expect(EventEmitter.listenerCount(readable, event)).toBe(0);
+                });
+            });
+        })
     });
 });

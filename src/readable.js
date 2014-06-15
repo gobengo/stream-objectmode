@@ -446,6 +446,24 @@ function (Stream, util, EventEmitter, inherits) {
 
 
     /**
+     * Sugar for .on('data', fn)
+     * Makes streams able to appear like arrays
+     */
+    Readable.prototype.forEach = function (onData, onError, onEnd) {
+        var readable = this;
+        function observe(stop) {
+            var eeMethod = stop ? 'removeListener' : 'on';
+            if (onData) readable[eeMethod]('data', onData);
+            if (onError) readable[eeMethod]('error', onError);
+            if (onEnd) readable[eeMethod]('end', onEnd);
+        }
+        observe();
+        return {
+            dispose: observe.bind({}, true)
+        }
+    };
+
+    /**
      * Read data from the read buffer
      * @param [size] {number} The number of items to read from the buffer.
      *     If not provided, all data will be returned.
