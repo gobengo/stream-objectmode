@@ -95,7 +95,7 @@ Transform.prototype._afterTransform = function (err, data) {
     ts.writechunk = null;
     ts.writecb = null;
 
-    if (data !== null && data !== undefined) {
+    if (data !== null) {
         this.push(data);
     }
 
